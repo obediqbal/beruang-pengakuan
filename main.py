@@ -49,7 +49,10 @@ async def on_message(message):
         await message.channel.purge()
     if msg.startswith('>reset_user_id'):
       reset_user_id(str(message.author))
-    await message.channel.purge(limit=1)
+    try:
+      await message.channel.purge(limit=1)
+    except:
+      pass
     return
   
   # delete_all_message(message)
