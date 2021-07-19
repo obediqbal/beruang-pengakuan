@@ -10,13 +10,27 @@ client = discord.Client()
 
 def get_user_id(author):
   if author not in db["user_id"].keys():
-    rand = random.randint(1000,9999)
+    rand = random.randint(0000,9999)
     while rand in db["user_id"].values():
-      rand = random.randint(1000,9999)
+      rand = random.randint(0000,9999)
     db["user_id"][author]=rand
   user_id = db["user_id"][author]
 
   return user_id
+
+def reset_user_id(author):
+  del db["user_id"][author]
+
+def change_user_id_to(author,num):
+  reset_user_id(author)
+  db["user_id"][author]=num
+
+def add_extra_digit(num):
+  temp = ""
+  for i in range(4-len(str(num))):
+    temp+="0"
+  temp+=str(num)
+  return temp
 
 def find_role(role,author):
   roles = map(str,author.roles)
@@ -25,8 +39,6 @@ def find_role(role,author):
       return True
   return False
 
-def reset_user_id(author):
-  del db["user_id"][author]
 
 @client.event
 async def on_message(message):
@@ -38,19 +50,33 @@ async def on_message(message):
 
   msg = message.content
   atchs = message.attachments
-  user_id = get_user_id(str(message.author))
+  author = message.author
+  user_id = add_extra_digit(get_user_id(str(author)))
 
   if msg.startswith('>'):
-    if find_role("Normal People", message.author):
-      if msg.startswith('>del_msg_all'):
-        await message.channel.purge()
-    if msg.startswith('>reset_user_id'):
-      reset_user_id(str(message.author))
+    args = []
+    command = str(msg).split() 
     try:
-      await message.channel.purge(limit=1)
+      args = str(msg).split()[1:]
     except:
       pass
-    return
+
+    try:
+      if find_role("Normal People", author):
+        if msg.startswith('>del_msg_all'):
+          await message.channel.purge()
+      if msg.startswith('>reset_user_id'):
+        reset_user_id(str(author))
+      if msg.startswith('>change_user_id_to') and len(args):
+        if 0<int(args[0]) and int(args[0])<=9999:
+          change_user_id_to(str(author), int(args[0]))
+    
+    finally:
+      try:
+        await message.channel.purge(limit=1)
+      except:
+        pass
+      return
 
   try:
     await message.channel.purge(limit=1)
@@ -61,3 +87,7 @@ async def on_message(message):
     await message.channel.send(atch)
 
 client.run(os.getenv('TOKEN'))
+
+# TODO:
+#   CONFESS VIA DM
+#   LIST OF COMMANDS
