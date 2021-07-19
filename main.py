@@ -22,18 +22,38 @@ def get_user_id(author):
 #   for msg in message.channel:
 #     print(msg)
 
+def find_role(role,author):
+  roles = map(str,author.roles)
+  for i in roles:
+    if role in i:
+      return True
+  return False
+
+
 @client.event
 async def on_message(message):
-  if message.author.bot or str(message.channel)!="ngaku":
+  if str(message.channel)!="ngaku":
+    if not str(message.channel).startswith("Direct Message"):
+      return
+  if message.author.bot:
     return
 
   msg = message.content;
-  msgStripped = msg.strip("`")
   user_id = get_user_id(str(message.author))
+
+  if msg.startswith('>'):
+    if find_role("Normal People", message.author):
+      if msg.startswith('>del_msg_all'):
+        await message.channel.purge()
+    await message.channel.purge(limit=1)
+    return
   
   # delete_all_message(message)
 
-  await message.channel.purge(limit=1)
-  await message.channel.send(f"<{user_id}>: ```{msgStripped}```")
+  try:
+    await message.channel.purge(limit=1)
+  except:
+    pass
+  await message.channel.send(f"`<{user_id}>`: {msg}")
 
 client.run(os.getenv('TOKEN'))
