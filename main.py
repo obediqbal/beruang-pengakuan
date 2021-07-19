@@ -18,11 +18,6 @@ def get_user_id(author):
 
   return user_id
 
-# def get_attachments(message):
-#   attch = []
-#   for i in message.attachments:
-#     attch.append()
-
 def find_role(role,author):
   roles = map(str,author.roles)
   for i in roles:
