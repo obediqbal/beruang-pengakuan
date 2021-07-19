@@ -18,6 +18,11 @@ def get_user_id(author):
 
   return user_id
 
+# def get_attachments(message):
+#   attch = []
+#   for i in message.attachments:
+#     attch.append()
+
 def find_role(role,author):
   roles = map(str,author.roles)
   for i in roles:
@@ -36,7 +41,8 @@ async def on_message(message):
   if message.author.bot:
     return
 
-  msg = message.content;
+  msg = message.content
+  atchs = message.attachments
   user_id = get_user_id(str(message.author))
 
   if msg.startswith('>'):
@@ -50,11 +56,13 @@ async def on_message(message):
     except:
       pass
     return
-    
+
   try:
     await message.channel.purge(limit=1)
   except:
     pass
   await message.channel.send(f"`<{user_id}>`: {msg}")
+  for atch in atchs:
+    await message.channel.send(atch)
 
 client.run(os.getenv('TOKEN'))
