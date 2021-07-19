@@ -29,6 +29,8 @@ def find_role(role,author):
       return True
   return False
 
+def reset_user_id(author):
+  del db["user_id"][author]
 
 @client.event
 async def on_message(message):
@@ -45,6 +47,8 @@ async def on_message(message):
     if find_role("Normal People", message.author):
       if msg.startswith('>del_msg_all'):
         await message.channel.purge()
+    if msg.startswith('>reset_user_id'):
+      reset_user_id(str(message.author))
     await message.channel.purge(limit=1)
     return
   
