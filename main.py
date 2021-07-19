@@ -18,10 +18,6 @@ def get_user_id(author):
 
   return user_id
 
-# def delete_all_message(message):
-#   for msg in message.channel:
-#     print(msg)
-
 def find_role(role,author):
   roles = map(str,author.roles)
   for i in roles:
@@ -54,9 +50,7 @@ async def on_message(message):
     except:
       pass
     return
-  
-  # delete_all_message(message)
-
+    
   try:
     await message.channel.purge(limit=1)
   except:
