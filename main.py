@@ -7,6 +7,7 @@ from keep_alive import keep_alive
 keep_alive()
 
 client = discord.Client()
+prefix = '>'
 
 def get_user_id(author):
   if author not in db["user_id"].keys():
@@ -48,12 +49,13 @@ async def on_message(message):
   if message.author.bot:
     return
 
+  msgid = message.id
   msg = message.content
   atchs = message.attachments
   author = message.author
   user_id = add_extra_digit(get_user_id(str(author)))
 
-  if msg.startswith('>'):
+  if msg.startswith(prefix):
     args = []
     command = str(msg).split() 
     try:
@@ -63,23 +65,22 @@ async def on_message(message):
 
     try:
       if find_role("Normal People", author):
-        if msg.startswith('>del_msg_all'):
+        if msg.startswith(prefix+'del_msg_all'):
           await message.channel.purge()
-        if msg.startswith('>change_user_id_to') and len(args):
+        if msg.startswith(prefix+'change_user_id_to') and len(args):
           if 0<int(args[0]) and int(args[0])<=9999 and int(args[0]) not in db["user_id"].values():
             change_user_id_to(str(author), int(args[0]))
-      if msg.startswith('>reset_user_id'):
+      if msg.startswith(prefix+'reset_user_id'):
         reset_user_id(str(author))
     
     finally:
       try:
-        await message.channel.purge(limit=1)
-      except:
-        pass
-      return
+        await message.delete()
+      finally:
+        return
 
   try:
-    await message.channel.purge(limit=1)
+    await message.delete()
   except:
     pass
   await message.channel.send(f"`<{user_id}>`: {msg}")
@@ -92,3 +93,4 @@ client.run(os.getenv('TOKEN'))
 #   CONFESS VIA DM
 #   LIST OF COMMANDS
 #   DIFFERENT ID PER SERVER
+#   FIX WRONG MESSAGE DELETETION
