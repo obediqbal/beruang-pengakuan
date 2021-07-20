@@ -38,7 +38,7 @@ def find_role(role,author):
     if role in i:
       return True
   return False
-
+#Try changing boolean into int
 
 @client.event
 async def on_message(message):
@@ -66,7 +66,7 @@ async def on_message(message):
         if msg.startswith('>del_msg_all'):
           await message.channel.purge()
         if msg.startswith('>change_user_id_to') and len(args):
-          if 0<int(args[0]) and int(args[0])<=9999:
+          if 0<int(args[0]) and int(args[0])<=9999 and int(args[0]) not in db["user_id"].values():
             change_user_id_to(str(author), int(args[0]))
       if msg.startswith('>reset_user_id'):
         reset_user_id(str(author))
