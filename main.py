@@ -2,7 +2,6 @@ import os
 import discord
 import random
 import json
-from types import SimpleNamespace
 from replit import db
 
 from keep_alive import keep_alive
@@ -10,13 +9,6 @@ from keep_alive import keep_alive
 keep_alive()
 
 client = discord.Client()
-
-# prefix = ''
-# authority = ''
-# commands = {}
-# dbUID = {}
-# for key in db.keys():
-#   del db[key]
 
 default_prefix = '>'
 default_authority = 'Normal People'
@@ -76,56 +68,6 @@ def update_server(serverid,serverObject):
   del db["server"][serverid]
   db["server"][serverid]=json.dumps(serverObject.__dict__)
 
-# def load_db(serverid):
-#     if "prefix" not in db["server"][serverid].keys():
-#         db["server"][serverid]["prefix"] = '>'
-#     if "authority" not in db["server"][serverid].keys():
-#         db["server"][serverid]["authority"] = 'Normal People'
-#     if "commands" not in db["server"][serverid].keys():
-#         db["server"][serverid]["commands"] = {
-#             'purge_messages': 'purgeMessages',
-#             'change_user_ID': 'changeUID',
-#             'change_bot_prefix': 'changePrefix',
-#             'reset_user_id': 'resetUID',
-#             'commands_list': 'help'
-#         }
-#     if "user_id" not in db["server"][serverid].keys():
-#         db["server"][serverid]["user_id"] = {}
-#     global prefix, authority, commands, dbUID
-#     prefix = db["server"][serverid]["prefix"]
-#     authority = db["server"][serverid]["authority"]
-#     commands = db["server"][serverid]["commands"]
-#     dbUID = db["server"][serverid]["user_id"]
-
-
-# def save_to_db(serverid,key, changes):
-#     del db["server"][serverid][key]
-#     db["server"][serverid][key] = changes
-
-
-# def get_user_id(author, serverObject):
-#     author = author.name
-#     if author not in dbUID.keys():
-#         rand = random.randint(0000, 9999)
-#         while rand in dbUID.values():
-#             rand = random.randint(0000, 9999)
-#         dbUID[author] = rand
-#     user_id = dbUID[author]
-
-#     return user_id, dbUID
-
-
-# def reset_user_id(author,dbUID):
-#     author = str(author)
-#     del dbUID[author]
-    
-
-
-# def change_user_id_to(author, num):
-#     author = str(author)
-#     reset_user_id(author)
-#     dbUID[author] = num
-
 
 def add_extra_digit(num):
     temp = ""
@@ -141,8 +83,6 @@ def find_role(role, author):
         if role in i:
             return True
     return False
-
-
 #Try changing boolean into int
 
 
