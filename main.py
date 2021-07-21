@@ -84,6 +84,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+
   await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,name="your confession"))
   if str(message.channel)!="ngaku":
     if not str(message.channel).startswith("Direct Message"):
@@ -100,42 +101,40 @@ async def on_message(message):
     args = [] 
     try:
       args = str(msg).split()[1:]
-    except:
-      pass
-
-    try:
-      if find_role(authority, author):
-        if msg.startswith(prefix+commands['purge_messages']):
-          await message.channel.purge()
-        elif msg.startswith(prefix+commands['change_user_ID']) and len(args):
-          if 0<int(args[0]) and int(args[0])<=9999 and int(args[0]) not in dbUID.values():
-            change_user_id_to(author.id, int(args[0]))
-        elif msg.startswith(prefix+commands['change_bot_prefix']):
-          save_to_db("prefix",args[0])
-          load_db()
-      if msg.startswith(prefix+commands['reset_user_id']):
-        reset_user_id(author.id)
-      elif msg.startswith(prefix+commands['commands_list']):
-        s = "```"
-        for command in commands:
-          s+=f"{command} : {commands[command]}\n"
-        s+=f"prefix: {prefix}```"
-        await message.channel.send(s)
-          
-    
     finally:
       try:
-        await message.delete()
+        if find_role(authority, author):
+          if msg.startswith(prefix+commands['purge_messages']):
+            await message.channel.purge()
+          elif msg.startswith(prefix+commands['change_user_ID']) and len(args):
+            if 0<int(args[0]) and int(args[0])<=9999 and int(args[0]) not in dbUID.values():
+              change_user_id_to(author.id, int(args[0]))
+          elif msg.startswith(prefix+commands['change_bot_prefix']):
+            save_to_db("prefix",args[0])
+            load_db()
+        if msg.startswith(prefix+commands['reset_user_id']):
+          reset_user_id(author.id)
+        elif msg.startswith(prefix+commands['commands_list']):
+          s = "```"
+          for command in commands:
+            s+=f"{command} : {commands[command]}\n"
+          s+=f"prefix : {prefix}```"
+          await message.channel.send(s)
+            
+      
       finally:
-        return
+        try:
+          await message.delete()
+        finally:
+          return
 
   try:
-    await message.delete()
-  except:
     pass
-  await message.channel.send(f"`<{user_id}>`: {msg}")
-  for atch in atchs:
-    await message.channel.send(atch)
+    await message.delete()
+  finally:
+    await message.channel.send(content=f"`<{user_id}>`: {msg}",reference=message.reference)
+    for atch in atchs:
+      await message.channel.send(atch)
 
 client.run(os.getenv('TOKEN'))
 
