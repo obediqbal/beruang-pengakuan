@@ -3,11 +3,10 @@ import discord
 from replit import db
 import utils
 import data
+from data import client
 
 from keep_alive import keep_alive
 keep_alive()
-
-client = discord.Client()
 
 def add_extra_digit(num):
     temp = ""
@@ -17,7 +16,7 @@ def add_extra_digit(num):
     return temp
 
 
-def find_role(role, author):
+def has_role(role, author):
     roles = map(str, author.roles)
     for i in roles:
         if role in i:
@@ -48,9 +47,24 @@ async def on_message(message):
     atchs = message.attachments
     author = message.author
 
-
     if DM:
-      pass
+      serverid = msg.split()[0]
+      channel = data.get_channel(serverid)
+      serverObject = utils.Parser(db["server"][serverid])
+
+      if str(author.id) not in serverObject.userIds.keys():
+        serverObject = data.generate_user_id(serverObject, author)
+
+      user_id = add_extra_digit(serverObject.userIds[str(author.id)])
+
+      authmsg = msg[len(serverid)+1:]
+
+      data.update_server(serverid,serverObject)
+
+      await channel.send(content=f"`<{user_id}>`: {authmsg}",reference=message.reference)
+      for atch in atchs:
+              await channel.send(atch)
+
     else:
       serverid = str(message.guild.id)
 
@@ -71,7 +85,7 @@ async def on_message(message):
               args = str(msg).split()[1:]
           finally:
               try:
-                  if find_role(authority, author):
+                  if has_role(authority, author):
                       if msg.startswith(prefix + commands['purge_messages']):
                           await message.channel.purge()
                       elif msg.startswith(prefix + commands['change_user_ID']) and len(args) :

@@ -1,6 +1,9 @@
 import random
 import json
+import discord
 from replit import db
+
+client = discord.Client()
 
 default_prefix = '>'
 default_authority = 'Normal People'
@@ -14,7 +17,8 @@ default_commands = {
 default_userIds = {}
 
 class Server:
-  def __init__(self,prefix=default_prefix,authority=default_authority,commands=default_commands,userIds=default_userIds):
+  def __init__(self,id,prefix=default_prefix,authority=default_authority,commands=default_commands,userIds=default_userIds):
+    self.id = id
     self.prefix = prefix
     self.authority = authority
     self.commands = commands
@@ -50,8 +54,17 @@ def load_server(serverid):
     if "server" not in db.keys():
       db["server"] = {}
     if serverid not in db["server"].keys():
-      db["server"][serverid] = json.dumps(Server().__dict__)
+      db["server"][serverid] = json.dumps(Server(serverid).__dict__)
 
 def update_server(serverid,serverObject):
   del db["server"][serverid]
   db["server"][serverid]=json.dumps(serverObject.__dict__)
+
+def get_guild(id):
+  return client.get_guild(int(id))
+
+def get_channel(id, channelName = "ngaku"):
+  guild = get_guild(id)
+  for channel in guild.channels:
+    if channel.name==channelName:
+      return channel
