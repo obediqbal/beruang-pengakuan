@@ -1,12 +1,12 @@
 import os
 import discord
-from replit import db
-import utils
 import data
 from data import client
 
 from keep_alive import keep_alive
 keep_alive()
+
+recognized_channel = "ngaku"
 
 def add_extra_digit(num):
     temp = ""
@@ -36,7 +36,7 @@ async def on_message(message):
         type=discord.ActivityType.listening, name="your confession"))
 
     DM = False
-    if str(message.channel) != "ngaku":
+    if str(message.channel) != recognized_channel:
         if not str(message.channel).startswith("Direct Message"):
             return
         DM = True
@@ -48,36 +48,33 @@ async def on_message(message):
     author = message.author
 
     if DM:
-      serverid = msg.split()[0]
-      channel = data.get_channel(serverid)
-      serverObject = utils.Parser(db["server"][serverid])
+      guildId = msg.split()[0]
+      channelTarget = data.get_channel(guildId)
+      guildObjectTarget = data.load_guild_from_db(guildId)
 
-      if str(author.id) not in serverObject.userIds.keys():
-        serverObject = data.generate_user_id(serverObject, author)
+      if str(author.id) not in guildObjectTarget.userIds.keys():
+        guildObjectTarget = data.generate_user_id(guildObjectTarget, author)
 
-      user_id = add_extra_digit(serverObject.userIds[str(author.id)])
+      user_id = add_extra_digit(guildObjectTarget.userIds[str(author.id)])
 
-      authmsg = msg[len(serverid)+1:]
+      authmsg = msg[len(guildId)+1:]
 
-      data.update_server(serverid,serverObject)
-
-      await channel.send(content=f"`<{user_id}>`: {authmsg}",reference=message.reference)
+      await channelTarget.send(content=f"`<{user_id}>`: {authmsg}",reference=message.reference)
       for atch in atchs:
-              await channel.send(atch)
+              await channelTarget.send(atch)
 
     else:
-      serverid = str(message.guild.id)
+      guildId = str(message.guild.id)
 
-      data.load_server(serverid)
-      serverObject = utils.Parser(db["server"][serverid])
-      prefix = serverObject.prefix
-      commands = serverObject.commands
-      authority = serverObject.authority
+      guildObject = data.load_guild_from_db(guildId)
+      prefix = guildObject.prefix
+      commands = guildObject.commands
+      authority = guildObject.authority
 
-      if str(author.id) not in serverObject.userIds.keys():
-        serverObject = data.generate_user_id(serverObject, author)
+      if str(author.id) not in guildObject.userIds.keys():
+        guildObject = data.generate_user_id(guildObject, author)
 
-      user_id = add_extra_digit(serverObject.userIds[str(author.id)])
+      user_id = add_extra_digit(guildObject.userIds[str(author.id)])
       
       if msg.startswith(prefix):
           args = []
@@ -89,15 +86,13 @@ async def on_message(message):
                       if msg.startswith(prefix + commands['purge_messages']):
                           await message.channel.purge()
                       elif msg.startswith(prefix + commands['change_user_ID']) and len(args) :
-                          if 0 < int(args[0]) and int(args[0]) <= 9999 and int(args[0]) not in serverObject.userIds.values():
-                              serverObject = data.change_user_id_to(serverObject,author, int(args[0]))
+                          if 0 < int(args[0]) and int(args[0]) <= 9999 and int(args[0]) not in guildObject.userIds.values():
+                              guildObject = data.change_user_id_to(guildObject,author, int(args[0]))
                       elif msg.startswith(prefix +
                                           commands['change_bot_prefix']):
-                          serverObject.prefix=args[0]
-                          data.update_server(serverid,serverObject)
+                          guildObject.prefix=args[0]
                   if msg.startswith(prefix + commands['reset_user_id']):
-                      serverObject = data.reset_user_id(serverObject,author)
-                      data.update_server(serverid,serverObject)
+                      guildObject = data.reset_user_id(guildObject,author)
                   elif msg.startswith(prefix + commands['commands_list']):
                       s = "```"
                       for command in commands:
@@ -107,16 +102,13 @@ async def on_message(message):
 
               finally:
                   try:
-                      if not DM:
-                        await message.delete()
+                      await message.delete()
                   finally:
-                      data.update_server(serverid, serverObject)
                       return
 
       try:
           await message.delete()
       finally:
-          data.update_server(serverid, serverObject)
           await message.channel.send(content=f"`<{user_id}>`: {msg}",
                                     reference=message.reference)
           for atch in atchs:
