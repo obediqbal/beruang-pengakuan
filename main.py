@@ -71,7 +71,7 @@ async def on_message(message):
         default = False
 
         if not data.does_guild_exist(guildId):
-          if userObject.default_guildId=="":
+          if userObject.default_guildId=="" or data.is_guildId_valid(guildId):
             await message.channel.send("Server tidak ditemukan!")
             return
           guildId = userObject.default_guildId

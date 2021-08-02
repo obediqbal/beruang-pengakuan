@@ -112,3 +112,9 @@ def does_guild_exist(guildId):
   elif guildId not in db["guild"].keys():
     return False
   return True
+
+
+def is_guildId_valid(id):
+  if len(id)==18 and id.isnumeric():
+    return True
+  return False
