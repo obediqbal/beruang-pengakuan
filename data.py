@@ -30,9 +30,6 @@ class Server:
     self.commands = commands
     self.userIds = userIds
 
-  def parse(self, obj):
-    self.__dict__ = Parser(obj).__dict__
-
   def generate_user_id(self, author):
     if str(author.id) not in self.userIds.keys():
       rand = random.randint(0000, 9999)
@@ -67,9 +64,6 @@ class User:
     self.guildIds = guildIds
     self.default_guildId=default_guildId
 
-  def parse(self, obj):
-    self.__dict__ = Parser(obj).__dict__
-
   def update_user_to_db(self):
     del db["user"][self.id]
     db["user"][self.id] = json.dumps(self.__dict__)
@@ -89,10 +83,7 @@ def load_guild_from_db(guildId):
     if guildId not in db["guild"].keys():
       db["guild"][guildId] = json.dumps(Server(guildId).__dict__)
 
-    guild = Server(guildId)
-    guild.parse(db["guild"][guildId])
-
-    return guild
+    return Server(*Parser(db["guild"][guildId]).__dict__.values())
 
 
 def load_user_from_db(userId):
@@ -101,10 +92,7 @@ def load_user_from_db(userId):
   if userId not in db["user"].keys():
     db["user"][userId] = json.dumps(User(userId).__dict__)
 
-  user = User(userId)
-  user.parse(db["user"][userId])
-
-  return user
+  return User(*Parser(db["user"][userId]).__dict__.values())
 
 
 def get_guild(id):
