@@ -6,6 +6,8 @@ from replit import db
 
 client = discord.Client()
 
+recognized_channel = "ngaku"
+
 default_prefix = '>'
 default_authority = 'Normal People'
 default_commands = {
@@ -17,52 +19,68 @@ default_commands = {
             }
 default_userIds = {}
 
+def clear_db():
+  db.clear()
+
 class Server:
-  def __init__(self,id,prefix=default_prefix,authority=default_authority,commands=default_commands,userIds=default_userIds):
-    self.id = id
+  def __init__(self,gid,prefix=default_prefix,authority=default_authority,commands=default_commands,userIds=default_userIds):
+    self.id = gid
     self.prefix = prefix
     self.authority = authority
     self.commands = commands
     self.userIds = userIds
 
+  def parse(self, obj):
+    self.__dict__ = Parser(obj).__dict__
+
+  def generate_user_id(self, author):
+    if str(author.id) not in self.userIds.keys():
+      rand = random.randint(0000, 9999)
+      while rand in self.userIds.values():
+        rand = random.randint(0000, 9999)
+      self.userIds[str(author.id)] = rand
+
+    self.update_guild_to_db()
+
+
+  def reset_user_id(self, author):
+    del self.userIds[str(author.id)]
+    self.generate_user_id(author)
+    
+
+  def change_user_id_to(self, author, num):
+    del self.userIds[str(author.id)]
+    self.userIds[str(author.id)] = num
+
+    self.update_guild_to_db()
+
+  
+  def update_guild_to_db(self):
+    guildId = self.id
+    del db["guild"][guildId]
+    db["guild"][guildId] = json.dumps(self.__dict__)
+    
 
 class User:
-  def __init__(self,id,guildIds={},default_guildId=""):
-    self.id = id
+  def __init__(self,uid,guildIds={},default_guildId=""):
+    self.id = uid
     self.guildIds = guildIds
     self.default_guildId=default_guildId
 
+  def parse(self, obj):
+    self.__dict__ = Parser(obj).__dict__
 
-def generate_user_id(guildObject, author):
-  author = str(author.id)
-  if author not in guildObject.userIds.keys():
-    rand = random.randint(0000, 9999)
-    while rand in guildObject.userIds.values():
-      rand = random.randint(0000, 9999)
-    guildObject.userIds[author] = rand
+  def update_user_to_db(self):
+    del db["user"][self.id]
+    db["user"][self.id] = json.dumps(self.__dict__)
 
-  update_guild_to_db(guildObject)
+  def update_from_guild(self,guildObject):
+    if str(guildObject.id) not in self.guildIds.keys():
+      self.guildIds[str(guildObject.id)] = {}
 
-  return guildObject
+    self.guildIds[str(guildObject.id)]["userid"] = guildObject.userIds[str(self.id)]
 
-
-def reset_user_id(guildObject, author):
-  del guildObject.userIds[str(author.id)]
-  guildObject = generate_user_id(guildObject, author)
-  
-  update_guild_to_db(guildObject)
-
-  return guildObject
-
-
-def change_user_id_to(guildObject, author, num):
-  author = str(author.id)
-  del guildObject.userIds[author]
-  guildObject.userIds[author] = num
-
-  update_guild_to_db(guildObject)
-  
-  return guildObject
+    self.update_user_to_db()
 
 
 def load_guild_from_db(guildId):
@@ -71,27 +89,22 @@ def load_guild_from_db(guildId):
     if guildId not in db["guild"].keys():
       db["guild"][guildId] = json.dumps(Server(guildId).__dict__)
 
-    return Parser(db["guild"][guildId])
+    guild = Server(guildId)
+    guild.parse(db["guild"][guildId])
+
+    return guild
 
 
-def load_user_from_db(userid):
+def load_user_from_db(userId):
   if "user" not in db.keys():
     db["user"] = {}
-  if userid not in db["user"].keys():
-    db["user"][userid] = json.dumps(User(userid))
+  if userId not in db["user"].keys():
+    db["user"][userId] = json.dumps(User(userId).__dict__)
 
-  return Parser(db["user"][userid])
+  user = User(userId)
+  user.parse(db["user"][userId])
 
-
-def update_guild_to_db(guildObject):
-  guildId = guildObject.id
-  del db["guild"][guildId]
-  db["guild"][guildId] = json.dumps(guildObject.__dict__)
-
-
-def update_user_to_db(userId,userObject):
-  del db["user"][userId]
-  db["user"][userId] = json.dumps(userObject.__dict__)
+  return user
 
 
 def get_guild(id):
@@ -105,3 +118,9 @@ def get_channel(id, channelName = "ngaku"):
       return channel
 
 
+def does_guild_exist(guildId):
+  if "guild" not in db.keys():
+    return False
+  elif guildId not in db["guild"].keys():
+    return False
+  return True
